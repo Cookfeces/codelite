@@ -3,7 +3,6 @@
 #include "macros.h"
 #include "WordCompletionSettings.h"
 #include "WordCompletionDictionary.h"
-#include "WordTokenizerAPI.h"
 
 WordCompletionThread::WordCompletionThread(WordCompletionDictionary* dict)
     : m_dict(dict)
@@ -30,7 +29,6 @@ void WordCompletionThread::ProcessRequest(ThreadRequest* request)
 
 void WordCompletionThread::ParseBuffer(const wxString& buffer, wxStringSet_t& suggest)
 {
-#if 0
     wxArrayString filteredWords;
     wxArrayString words = ::wxStringTokenize(buffer, "\r\n \t->./\\'\"[]()<>*&^%#!@+=:,;{}|/", wxTOKEN_STRTOK);
     for(size_t i=0; i<words.size(); ++i) {
@@ -39,28 +37,4 @@ void WordCompletionThread::ParseBuffer(const wxString& buffer, wxStringSet_t& su
         }
     }
     suggest.insert(filteredWords.begin(), filteredWords.end());
-#else
-    WordScanner_t scanner = ::WordLexerNew(buffer);
-    if(!scanner) return;
-    WordLexerToken token;
-    std::string curword;
-    while(::WordLexerNext(scanner, token)) {
-        switch(token.type) {
-        case kWordDelim:
-            if(!curword.empty()) {
-                suggest.insert(curword);
-            }
-            curword.clear();
-            break;
-
-        case kWordNumber:
-            curword.clear();
-            break;
-        default:
-            curword += token.text;
-            break;
-        }
-    }
-    ::WordLexerDestroy(&scanner);
-#endif
 }
